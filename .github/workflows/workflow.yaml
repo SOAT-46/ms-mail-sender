@@ -27,12 +27,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.1
+          go-version: 1.23.5
           cache: false
       - name: Run lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.60
+          version: v2.0
           config: .golangci.yaml
 
   tests_test_all:
@@ -74,36 +74,10 @@ jobs:
             junit.xml
             cobertura.xml
 
-  quality_sonarqube-analysis:
-    name: 'quality > sonarqube-analysis'
-    runs-on: ubuntu-latest
-    needs: tests_test_all
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.23.1
-          cache: false
-      - name: Download test reports
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-reports
-          path: .
-
-      - name: Run SonarQube Scanner
-        uses: SonarSource/sonarqube-scan-action@v4.2.1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   docker-build-and-push:
     name: 'docker > build and push'
     runs-on: ubuntu-latest
-    needs: [tests_test_all, quality_sonarqube-analysis]
+    needs: [tests_test_all]
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout code
