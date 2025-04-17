@@ -17,5 +17,6 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- added commands and services to send the email
 - added golang project structure
 - added basic project structure
