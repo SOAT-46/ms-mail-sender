@@ -35,10 +35,35 @@ jobs:
           version: v2.0
           config: .golangci.yaml
 
+  code_check-static_analysis:
+    name: 'code-check > static-analysis'
+    runs-on: ubuntu-latest
+    needs: code_check-style_golangci_lint
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.5
+          cache: false
+
+      - name: Run Gosec Security Manager
+        uses: securego/gosec@master
+        with:
+          args: -fmt=json ./...
+
+      - name: Run staticcheck Security Manager
+        uses: dominikh/staticcheck-action@v1
+        with:
+          version: 'latest'
+
   tests_test_all:
     name: 'tests > test-all'
     runs-on: ubuntu-latest
-    needs: code_check-style_golangci_lint
+    needs: [code_check-style_golangci_lint, code_check-static_analysis]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,6 +98,8 @@ jobs:
             coverage.txt
             junit.xml
             cobertura.xml
+
+
 
   docker-build-and-push:
     name: 'docker > build and push'
