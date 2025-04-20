@@ -1,3 +1,5 @@
+TOOLS_DIR := $(shell go env GOPATH)/bin
+
 .PHONY: build
 build:
 	make wire
@@ -44,3 +46,28 @@ lint-fix:
 	make goimports
 	make gci
 	make lint
+
+.PHONY: static-analysis
+static-analysis: gosec staticcheck govulncheck
+
+.PHONY: gosec
+gosec:
+	@echo "Running gosec security static analysis..."
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	 gosec -fmt=json ./...
+
+.PHONY: staticcheck
+staticcheck:
+	@echo "Running staticcheck..."
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	staticcheck ./...
+
+.PHONY: govulncheck
+govulncheck:
+	@echo "Running govulncheck vulnerability analysis..."
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck ./...
+
+.PHONY: check-all
+check-all: lint-fix static-analysis test
+	@echo "All checks completed successfully!"
