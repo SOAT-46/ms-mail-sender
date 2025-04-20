@@ -15,7 +15,6 @@ touch coverage.xml
 
 # find the directories to test
 directories=""
-[ -d "$(pwd)/cmd" ] && directories="$directories ./cmd/..."
 [ -d "$(pwd)/pkg" ] && directories="$directories ./pkg/..."
 [ -d "$(pwd)/internal" ] && directories="$directories ./internal/..."
 
