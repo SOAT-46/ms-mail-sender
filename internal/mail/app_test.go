@@ -30,8 +30,8 @@ func TestMailApp(t *testing.T) {
 		defer hook.Reset()
 
 		command := doubles.NewInMemorySendMailCommand()
-		errorMailListener := listeners.NewSendErrorMailQueueListener(command)
-		successMailListener := listeners.NewSendSuccessMailQueueListener(command)
+		errorMailListener := listeners.NewSendErrorMailQueueListener(command, nil)
+		successMailListener := listeners.NewSendSuccessMailQueueListener(command, nil)
 
 		app := mail.NewApp(errorMailListener, successMailListener)
 

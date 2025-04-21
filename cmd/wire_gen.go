@@ -10,7 +10,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/soat-46/ms-mail-sender/internal/global/domain/entities"
+	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/configuration"
 	"github.com/soat-46/ms-mail-sender/internal/mail"
 	"github.com/soat-46/ms-mail-sender/internal/mail/domain/commands"
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/listeners"
@@ -26,8 +28,10 @@ func injectApps() []entities.App {
 	sendMailService := services.NewSendMailService(settings, dialer)
 	renderMailTemplate := services.NewRenderMailTemplate()
 	sendMailCommand := commands.NewSendMailCommand(sendMailService, renderMailTemplate)
-	sendErrorMailQueueListener := listeners.NewSendErrorMailQueueListener(sendMailCommand)
-	sendSuccessMailQueueListener := listeners.NewSendSuccessMailQueueListener(sendMailCommand)
+	queueSettings := injectRabbitMQSettings()
+	channel := injectRabbitMQChannel(queueSettings)
+	sendErrorMailQueueListener := listeners.NewSendErrorMailQueueListener(sendMailCommand, channel)
+	sendSuccessMailQueueListener := listeners.NewSendSuccessMailQueueListener(sendMailCommand, channel)
 	app := mail.NewApp(sendErrorMailQueueListener, sendSuccessMailQueueListener)
 	v := newApps(app)
 	return v
@@ -47,6 +51,22 @@ func injectSettings() *entities.Settings {
 
 func injectGoMail(settings *entities.Settings) *gomail.Dialer {
 	return gomail.NewDialer(settings.Host, settings.Port, settings.Username, settings.Password)
+}
+
+func injectRabbitMQSettings() *entities.QueueSettings {
+	host := os.Getenv("RABBITMQ_HOST")
+	port, _ := strconv.Atoi(os.Getenv("RABBITMQ_PORT"))
+	username := os.Getenv("RABBITMQ_USERNAME")
+	password := os.Getenv("RABBITMQ_PASSWORD")
+	return entities.NewQueueSettings(host, username, password, port)
+}
+
+func injectRabbitMQChannel(settings *entities.QueueSettings) *amqp091.Channel {
+	client, err := configuration.OpenChannel(settings)
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
 
 func newApps(mail2 *mail.App) []entities.App {
