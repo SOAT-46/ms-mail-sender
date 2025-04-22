@@ -3,6 +3,10 @@
 This project is a microservice that sends emails.
 The application receives the emails from a queue and sends them to an SMTP server.
 
+## Archtecture
+
+![application_overview](docs/project.png)
+
 ### 🧪 Testing
 
 To run the tests, run the following command:

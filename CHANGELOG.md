@@ -17,6 +17,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- added information about the project in `README.md`
 - added SonarQube analysis to the pipeline
 - added `RabbitMQ` support
 - added security step in the pipeline
