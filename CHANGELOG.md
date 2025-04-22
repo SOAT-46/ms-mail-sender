@@ -17,9 +17,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- added SonarQube analysis to the pipeline
 - added `RabbitMQ` support
 - added security step in the pipeline
 - added unit tests to increase code coverage
 - added commands and services to send the email
 - added golang project structure
 - added basic project structure
+
+### Changed
+
+- changed GitHub pipeline to deploy the application
