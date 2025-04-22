@@ -21,8 +21,8 @@ docker-up:
 
 .PHONY: lint
 lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	golangci-lint run \
+	wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh
+	./bin/golangci-lint run --fix \
 		--config ".golangci.yaml" \
 		--color "always" \
 		--timeout "10m" \

@@ -24,7 +24,9 @@ func NewApp(
 func (itself *App) RunConsumers() {
 	logger.Info("Starting queue consumers...")
 	for _, consumer := range itself.listeners {
-		consumer.Run()
+		go func() {
+			consumer.Run()
+		}()
 	}
 	logger.Info("Queue consumers started successfully")
 }
