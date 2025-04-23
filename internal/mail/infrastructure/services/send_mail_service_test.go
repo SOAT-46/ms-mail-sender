@@ -11,6 +11,10 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+const (
+	testEmail = "test@example.com"
+)
+
 type SendMailServiceSuite struct {
 	suite.Suite
 	server *smtpmock.Server
@@ -18,8 +22,6 @@ type SendMailServiceSuite struct {
 
 func (suite *SendMailServiceSuite) SetupTest() {
 	suite.server = smtpmock.New(smtpmock.ConfigurationAttr{
-		//HostAddress:       "smtp.example.com",
-		//PortNumber:        2525,
 		LogToStdout:       true,
 		LogServerActivity: true,
 	})
@@ -39,7 +41,7 @@ func (suite *SendMailServiceSuite) TestSendMailService() {
 		hostAddress, portNumber := "127.0.0.1", suite.server.PortNumber
 
 		settings := entities2.NewSettings(
-			"test@example.com",
+			testEmail,
 			hostAddress,
 			portNumber,
 			"",
@@ -49,7 +51,7 @@ func (suite *SendMailServiceSuite) TestSendMailService() {
 		service := services.NewSendMailService(settings, dialer)
 
 		email := entities.Email{
-			To:      "test@example.com",
+			To:      testEmail,
 			Subject: "Test Subject",
 			Type:    entities.Success,
 		}
@@ -64,7 +66,7 @@ func (suite *SendMailServiceSuite) TestSendMailService() {
 	suite.Run("should fail to send the mail", func() {
 		// given
 		settings := entities2.NewSettings(
-			"test@example.com",
+			testEmail,
 			"127.0.0.1",
 			2525,
 			"",
@@ -74,7 +76,7 @@ func (suite *SendMailServiceSuite) TestSendMailService() {
 		service := services.NewSendMailService(settings, dialer)
 
 		email := entities.Email{
-			To:      "test@example.com",
+			To:      testEmail,
 			Subject: "Test Subject",
 			Type:    entities.Fail,
 		}

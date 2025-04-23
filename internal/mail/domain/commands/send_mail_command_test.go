@@ -16,18 +16,17 @@ var (
 )
 
 func TestSendMailCommand(t *testing.T) {
+	email := entities.Email{
+		To:      "test@example.com",
+		Subject: "Test Subject",
+		Type:    entities.Success,
+	}
 	t.Run("should call OnSuccess when mail is rendered and sent successfully", func(t *testing.T) {
 		// given
 		var isSuccess = false
 		mailService := doubles.NewInMemoryMailSenderService()
 		renderService := doubles.NewInMemoryRenderMailService()
 		command := commands.NewSendMailCommand(mailService, renderService)
-
-		email := entities.Email{
-			To:      "test@example.com",
-			Subject: "Test Subject",
-			Type:    entities.Success,
-		}
 
 		listeners := commands.SendMailListeners{
 			OnSuccess: func() { isSuccess = true },
@@ -46,12 +45,6 @@ func TestSendMailCommand(t *testing.T) {
 		mailService := doubles.NewInMemoryMailSenderService()
 		renderService := doubles.NewInMemoryRenderMailService().WithOnError(errRenderTemplate)
 		command := commands.NewSendMailCommand(mailService, renderService)
-
-		email := entities.Email{
-			To:      "test@example.com",
-			Subject: "Test Subject",
-			Type:    entities.Success,
-		}
 
 		var capturedError error
 		listeners := commands.SendMailListeners{
@@ -73,12 +66,6 @@ func TestSendMailCommand(t *testing.T) {
 		mailService := doubles.NewInMemoryMailSenderService().WithOnError(errSendMailCommand)
 		renderService := doubles.NewInMemoryRenderMailService()
 		command := commands.NewSendMailCommand(mailService, renderService)
-
-		email := entities.Email{
-			To:      "test@example.com",
-			Subject: "Test Subject",
-			Type:    entities.Success,
-		}
 
 		var capturedError error
 		listeners := commands.SendMailListeners{

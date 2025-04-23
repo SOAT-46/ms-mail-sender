@@ -97,6 +97,5 @@ func (svc *SendErrorMailQueueListener) process(message amqp.Delivery) {
 			}
 		},
 	}
-	logger.Info("Sending error mail")
 	svc.command.Execute(email.ToDomain(entities.Fail), listeners)
 }
