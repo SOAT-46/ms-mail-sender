@@ -3,13 +3,13 @@ package listeners_test
 import (
 	"context"
 	"encoding/json"
+	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/clients/providers/entities"
 	"strconv"
 	"testing"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/soat-46/ms-mail-sender/internal/global/domain/entities"
 	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/configuration"
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/listeners"
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/listeners/messages"

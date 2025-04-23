@@ -3,11 +3,13 @@
 package main
 
 import (
+	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/clients/contracts"
+	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/clients/providers"
+	entities2 "github.com/soat-46/ms-mail-sender/internal/global/infrastructure/clients/providers/entities"
 	"os"
 	"strconv"
 
 	"github.com/google/wire"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/soat-46/ms-mail-sender/internal/global/domain/entities"
 	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/configuration"
 	"github.com/soat-46/ms-mail-sender/internal/mail"
@@ -18,8 +20,8 @@ func injectApps() []entities.App {
 	wire.Build(
 		injectSettings,
 		injectGoMail,
-		injectRabbitMQSettings,
-		injectRabbitMQChannel,
+		injectQueueSettings,
+		injectSQSClient,
 		mail.Container,
 		newApps,
 	)
@@ -40,20 +42,19 @@ func injectGoMail(settings *entities.Settings) *gomail.Dialer {
 	return gomail.NewDialer(settings.Host, settings.Port, settings.Username, settings.Password)
 }
 
-func injectRabbitMQSettings() *entities.QueueSettings {
-	host := os.Getenv("RABBITMQ_HOST")
-	port, _ := strconv.Atoi(os.Getenv("RABBITMQ_PORT"))
-	username := os.Getenv("RABBITMQ_USERNAME")
-	password := os.Getenv("RABBITMQ_PASSWORD")
-	return entities.NewQueueSettings(host, username, password, port)
+func injectQueueSettings() *entities2.QueueSettings {
+	region := os.Getenv("AWS_SQS_REGION")
+	username := os.Getenv("AWS_SQS_KEY")
+	password := os.Getenv("AWS_SQS_SECRET")
+	return entities2.NewQueueSettings(username, password, region)
 }
 
-func injectRabbitMQChannel(settings *entities.QueueSettings) *amqp.Channel {
-	client, err := configuration.OpenChannel(settings)
+func injectSQSClient(settings *entities2.QueueSettings) contracts.SQSClient {
+	client, err := configuration.NewSQSClient(settings)
 	if err != nil {
 		panic(err)
 	}
-	return client
+	return providers.NewSQSClientProvider(client)
 }
 
 func newApps(mail *mail.App) []entities.App {
