@@ -15,11 +15,7 @@ func main() {
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
 	app := injectApps()
 	defer handlePanic()
-
-	for _, a := range app {
-		a.RunConsumers()
-	}
-
+	RunModules(app)
 	<-signalChan
 
 	logger.Infof("Shutting down ms-mail-sender")

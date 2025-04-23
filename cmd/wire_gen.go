@@ -7,9 +7,6 @@
 package main
 
 import (
-	"os"
-	"strconv"
-
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/soat-46/ms-mail-sender/internal/global/domain/entities"
 	"github.com/soat-46/ms-mail-sender/internal/global/infrastructure/configuration"
@@ -18,6 +15,8 @@ import (
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/listeners"
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/services"
 	"gopkg.in/gomail.v2"
+	"os"
+	"strconv"
 )
 
 // Injectors from wire.go:

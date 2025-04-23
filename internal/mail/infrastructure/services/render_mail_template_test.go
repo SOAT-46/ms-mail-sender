@@ -7,8 +7,13 @@ import (
 
 	"github.com/soat-46/ms-mail-sender/internal/mail/domain/entities"
 	"github.com/soat-46/ms-mail-sender/internal/mail/infrastructure/services"
+	"github.com/soat-46/ms-mail-sender/test/mail/infrastructure/services/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	defaultMessage = "template file does not exist"
 )
 
 func setupTestTemplates(t *testing.T) (string, func()) {
@@ -21,19 +26,8 @@ func setupTestTemplates(t *testing.T) (string, func()) {
 	require.NoError(t, err)
 
 	// Create test template files
-	successTemplate := `<!DOCTYPE html>
-<html>
-<body>
-	<h1>Success Template</h1>
-</body>
-</html>`
-
-	failTemplate := `<!DOCTYPE html>
-<html>
-<body>
-	<h1>Fail Template</h1>
-</body>
-</html>`
+	successTemplate := helpers.SuccessTemplate()
+	failTemplate := helpers.ErrorTemplate()
 
 	err = os.WriteFile(filepath.Join(templatesDir, "mail_success.html"), []byte(successTemplate), 0644)
 	require.NoError(t, err)
@@ -70,7 +64,7 @@ func TestRenderMailTemplate(t *testing.T) {
 		result, err := service.Execute(entities.Success)
 
 		// then
-		require.NoError(t, err, "template file does not exist")
+		require.NoError(t, err, defaultMessage)
 		assert.Contains(t, result, "Success Template")
 	})
 
@@ -85,7 +79,7 @@ func TestRenderMailTemplate(t *testing.T) {
 		result, err := service.Execute(entities.Fail)
 
 		// then
-		require.NoError(t, err, "template file does not exist")
+		require.NoError(t, err, defaultMessage)
 		assert.Contains(t, result, "Fail Template")
 	})
 
@@ -104,7 +98,7 @@ func TestRenderMailTemplate(t *testing.T) {
 		result, err := service.Execute(entities.Success)
 
 		// then
-		require.Error(t, err, "template file does not exist")
+		require.Error(t, err, defaultMessage)
 		require.ErrorIs(t, err, services.ErrParseTemplate, "expected ErrParseTemplate error")
 		assert.Empty(t, result, "result should be empty")
 	})

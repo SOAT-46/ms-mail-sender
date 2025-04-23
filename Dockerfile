@@ -16,10 +16,16 @@ RUN go build -o main ./cmd
 
 FROM alpine:3.21.3
 
-WORKDIR /root/
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /home/appuser
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
+
+RUN chown -R appuser:appgroup /home/appuser
+
+USER appuser
 
 EXPOSE 8080
 

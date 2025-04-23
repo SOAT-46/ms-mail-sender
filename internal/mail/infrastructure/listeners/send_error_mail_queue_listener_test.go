@@ -20,16 +20,17 @@ import (
 
 const (
 	RabbitMqImage = "rabbitmq:4.1-management-alpine"
+	queueName     = "video-error"
 )
 
 type SendErrorMailQueueSuite struct {
 	suite.Suite
 	context   context.Context
 	container *rabbitmq.RabbitMQContainer
-	channel   *amqp.Channel
+	settings  *entities.QueueSettings
 }
 
-func (suite *SendErrorMailQueueSuite) SetupTest() {
+func (suite *SendErrorMailQueueSuite) SetupSuite() {
 	ctx := context.Background()
 	suite.context = ctx
 
@@ -53,14 +54,10 @@ func (suite *SendErrorMailQueueSuite) SetupTest() {
 	username := suite.container.AdminUsername
 	password := suite.container.AdminPassword
 
-	settings := entities.NewQueueSettings(host, username, password, rabbitPort)
-	channel, err := configuration.OpenChannel(settings)
-	suite.Require().NoError(err)
-
-	suite.channel = channel
+	suite.settings = entities.NewQueueSettings(host, username, password, rabbitPort)
 }
 
-func (suite *SendErrorMailQueueSuite) TearDownTest() {
+func (suite *SendErrorMailQueueSuite) TearDownSuite() {
 	err := suite.container.Terminate(context.Background())
 	suite.Require().NoError(err)
 }
@@ -71,8 +68,11 @@ func (suite *SendErrorMailQueueSuite) TestSendErrorMailQueueListenerSuccess() {
 		hook := test.NewGlobal()
 		defer hook.Reset()
 
+		channel, err := configuration.OpenChannel(suite.settings)
+		suite.Require().NoError(err)
+
 		command := doubles.NewInMemorySendMailCommand()
-		listener := listeners.NewSendErrorMailQueueListener(command, suite.channel)
+		listener := listeners.NewSendErrorMailQueueListener(command, channel)
 
 		message := messages.SendMessage{To: "test@example.com"}
 		body, _ := json.Marshal(message)
@@ -82,8 +82,8 @@ func (suite *SendErrorMailQueueSuite) TestSendErrorMailQueueListenerSuccess() {
 
 		time.Sleep(1 * time.Second)
 
-		err := suite.channel.PublishWithContext(
-			suite.context, "", "video-error", false, false, amqp.Publishing{
+		err = channel.PublishWithContext(
+			suite.context, "", queueName, false, false, amqp.Publishing{
 				ContentType: "application/json",
 				Body:        body,
 			})
@@ -95,6 +95,54 @@ func (suite *SendErrorMailQueueSuite) TestSendErrorMailQueueListenerSuccess() {
 		suite.Equal("Error mail sent successfully",
 			hook.LastEntry().Message,
 			"should log success message")
+	})
+
+	suite.Run("should not execute the consumer when the channel is null", func() {
+		// given
+		hook := test.NewGlobal()
+		defer hook.Reset()
+
+		command := doubles.NewInMemorySendMailCommand()
+		listener := listeners.NewSendErrorMailQueueListener(command, nil)
+
+		// when
+		listener.Run()
+
+		// then
+		suite.Equal("Channel is nil",
+			hook.LastEntry().Message,
+			"should log success message")
+	})
+
+	suite.Run("should not unmarshal the message when the body is null", func() {
+		// given
+		hook := test.NewGlobal()
+		defer hook.Reset()
+
+		channel, err := configuration.OpenChannel(suite.settings)
+		suite.Require().NoError(err)
+
+		command := doubles.NewInMemorySendMailCommand()
+		listener := listeners.NewSendErrorMailQueueListener(command, channel)
+
+		// when
+		go listener.Run()
+
+		time.Sleep(1 * time.Second)
+
+		err = channel.PublishWithContext(
+			suite.context, "", queueName, false, false, amqp.Publishing{
+				ContentType: "application/json",
+				Body:        nil,
+			})
+		suite.Require().NoError(err)
+
+		time.Sleep(1 * time.Second)
+
+		// then
+		suite.Equal("Failed to unmarshal message. Reason: unexpected end of JSON input",
+			hook.LastEntry().Message,
+			"should log the unmarshall message")
 	})
 }
 
